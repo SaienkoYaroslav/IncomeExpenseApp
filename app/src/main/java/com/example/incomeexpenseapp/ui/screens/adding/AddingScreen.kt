@@ -43,6 +43,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.getString
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.incomeexpenseapp.R
 import com.example.incomeexpenseapp.data.db.entety.CategoryEntity
@@ -59,7 +60,21 @@ import com.example.incomeexpenseapp.utils.updateText
 import kotlinx.coroutines.launch
 
 @Composable
-fun AddingScreen(
+fun AddingScreen(){
+
+    val viewModel = hiltViewModel<AddingCategoryVM>()
+    val viewModelTrans = hiltViewModel<AddingTransactionVM>()
+
+    AddingContent(
+        viewModel = viewModel,
+        viewModelTrans = viewModelTrans
+    )
+
+}
+
+
+@Composable
+fun AddingContent(
     viewModel: AddingCategoryVM,
     viewModelTrans: AddingTransactionVM
 ) {

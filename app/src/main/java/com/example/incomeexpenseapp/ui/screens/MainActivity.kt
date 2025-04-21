@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.rememberNavController
+import com.example.incomeexpenseapp.nav.LocalNavController
 import com.example.incomeexpenseapp.nav.NavGraph
 import com.example.incomeexpenseapp.ui.components.BottomNavigationBar
 import com.example.incomeexpenseapp.ui.theme.IncomeExpenseAppTheme
@@ -55,14 +57,16 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        BottomNavigationBar(
-                            modifier = Modifier.padding(innerPadding),
-                            navHostController = navHostController
+                        CompositionLocalProvider(
+                            LocalNavController provides navHostController
                         ) {
-                            NavGraph(
-                                navHostController = navHostController
-                            )
+                            BottomNavigationBar(
+                                modifier = Modifier.padding(innerPadding)
+                            ) {
+                                NavGraph()
+                            }
                         }
+
                     }
                 }
             }
