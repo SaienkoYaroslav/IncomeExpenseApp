@@ -13,6 +13,8 @@ interface Repository {
 
     fun getAllTransaction(): Flow<List<TransactionEntity>>
 
+    fun getListTransactions(): List<TransactionEntity>
+
     suspend fun insertTransaction(transaction: TransactionEntity)
 
     fun getCategoriesWithTransactions(): Flow<List<CategoryWithTransactions>>

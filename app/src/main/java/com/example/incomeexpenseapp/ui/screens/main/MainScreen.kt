@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -35,10 +36,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,19 +76,74 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen() {
 
+    val context = LocalContext.current
     val viewModel = hiltViewModel<MainVM>()
+    val state by viewModel.stateFlow.collectAsStateWithLifecycle()
+    val message by viewModel.messageEvent.collectAsStateWithLifecycle("")
 
-    MainContent(viewModel = viewModel)
+    var categoryType by rememberSaveable { mutableStateOf(getString(context, R.string.income)) }
+
+    when (state) {
+        is ScreenState.Loading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Black),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        }
+
+        is ScreenState.Error -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Black),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = (state as ScreenState.Error).error, color = Color.White)
+            }
+        }
+
+        is ScreenState.Success -> {
+            val successState = state as ScreenState.Success
+            val transactions = successState.transactions
+
+            val filteredTransactions = remember(transactions, categoryType) {
+                transactions.filter { it.type == categoryType }
+            }
+
+            val totalSum = remember(filteredTransactions) {
+                filteredTransactions.sumOf { it.sum.toLong() }
+            }
+
+            MainContent(
+                filteredTransactions = filteredTransactions,
+                totalSum = totalSum,
+                message = message,
+                categoryType = categoryType,
+                onCategoryTypeChange = { categoryType = it },
+                onDeleteTx = { viewModel.deleteTx(it) },
+                onMessageShown = { viewModel.onMessageShown() }
+            )
+        }
+    }
 
 }
 
 
 @Composable
 fun MainContent(
-    viewModel: MainVM
+    filteredTransactions: List<TransactionEntity>,
+    totalSum: Long,
+    message: String,
+    categoryType: String,
+    onCategoryTypeChange: (String) -> Unit,
+    onDeleteTx: (TransactionEntity) -> Unit,
+    onMessageShown: () -> Unit
 ) {
 
-    val context = LocalContext.current
     val hazeState = remember { HazeState() }
 
     val systemBottomPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
@@ -95,23 +151,9 @@ fun MainContent(
 
     val config = LocalConfiguration.current
     val screenHeightDp = config.screenHeightDp.dp
-    val toolBarHeight by remember { mutableStateOf(screenHeightDp/3) }
+    val toolBarHeight by remember { mutableStateOf(screenHeightDp / 3) }
 
     val snackBarHostState = remember { SnackbarHostState() }
-    val messageState = viewModel.messageFlow.collectAsStateWithLifecycle()
-    var categoryType by remember { mutableStateOf(getString(context, R.string.income)) }
-    val transactions by viewModel.transactions.collectAsStateWithLifecycle(emptyList())
-    val filteredTransactions by remember(transactions, categoryType) {
-        mutableStateOf(
-            transactions.filter { it.type == categoryType }
-        )
-    }
-    val totalSum by remember(filteredTransactions) {
-        mutableLongStateOf(
-            filteredTransactions.sumOf { it.sum.toLong() }
-        )
-    }
-
 
     val collapsingToolBarState = rememberCollapsingToolBarState(
         toolBarMaxHeight = toolBarHeight,
@@ -119,13 +161,12 @@ fun MainContent(
         collapsingOption = CollapsingOption.EnterAlwaysCollapsedAutoSnap
     )
 
-
-    LaunchedEffect(messageState.value.first) {
-        if (messageState.value.first) {
+    LaunchedEffect(message) {
+        if (message.isNotBlank()) {
             snackBarHostState.showSnackbar(
-                message = messageState.value.second
+                message = message
             )
-            viewModel.messageFlow.value = Pair(false, "")
+            onMessageShown()
         }
     }
 
@@ -162,10 +203,10 @@ fun MainContent(
                             systemTopPadding = systemTopPadding,
                             totalSum = totalSum,
                             categoryType = categoryType,
-                            onCategoryTypeChange = { categoryType = it }
+                            onCategoryTypeChange = onCategoryTypeChange
                         )
                     }
-                ){
+                ) {
                     Spacer(Modifier.height(5.dp))
                     LazyColumn(
                         modifier = Modifier
@@ -179,8 +220,13 @@ fun MainContent(
                             )
                     ) {
                         if (filteredTransactions.isNotEmpty()) {
-                            items(filteredTransactions) {
-                                TransItem(item = it, viewModel = viewModel)
+                            items(filteredTransactions) { transactionItem ->
+                                TransItem(
+                                    item = transactionItem,
+                                    onDeleteTx = { deleteItem ->
+                                        onDeleteTx(deleteItem)
+                                    }
+                                )
                             }
                             item {
                                 Spacer(Modifier.height(systemBottomPadding + 70.dp))
@@ -202,7 +248,7 @@ fun MainContent(
 
 
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 Box(
                     modifier = Modifier
                         .hazeChild(state = hazeState)
@@ -235,12 +281,15 @@ fun MainContent(
 fun TransItem(
     modifier: Modifier = Modifier,
     item: TransactionEntity,
-    viewModel: MainVM
+    onDeleteTx: (TransactionEntity) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
     var openDeleteDialog by remember { mutableStateOf(false) }
-    val sign = if (item.type == stringResource(R.string.income)) stringResource(R.string.plus) else stringResource(R.string.minus)
+    val sign =
+        if (item.type == stringResource(R.string.income)) stringResource(R.string.plus) else stringResource(
+            R.string.minus
+        )
 
     Row(
         modifier = modifier
@@ -332,7 +381,7 @@ fun TransItem(
             confirmButtonClick = {
                 openDeleteDialog = false
                 scope.launch {
-                    viewModel.deleteTx(item)
+                    onDeleteTx(item)
                 }
             }
         )

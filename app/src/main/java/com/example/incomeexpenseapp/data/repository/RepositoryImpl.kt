@@ -28,6 +28,10 @@ class RepositoryImpl @Inject constructor(
         return transactionDao.getAllTransactions()
     }
 
+    override fun getListTransactions(): List<TransactionEntity> {
+        return transactionDao.getListTransactions()
+    }
+
     override suspend fun insertTransaction(transaction: TransactionEntity) {
         transactionDao.insertTransaction(transaction)
     }
