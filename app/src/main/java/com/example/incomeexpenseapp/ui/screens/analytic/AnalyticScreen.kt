@@ -1,7 +1,6 @@
 package com.example.incomeexpenseapp.ui.screens.analytic
 
 import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.getString
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.incomeexpenseapp.R
 import com.example.incomeexpenseapp.ui.components.MonthYearDropdown
@@ -51,7 +51,19 @@ import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 
 @Composable
-fun AnalyticScreen(
+fun AnalyticScreen() {
+
+    val viewModel = hiltViewModel<AnalyticVM>()
+
+    AnalyticContent(
+        viewModel = viewModel
+    )
+
+}
+
+
+@Composable
+fun AnalyticContent(
     viewModel: AnalyticVM
 ) {
 

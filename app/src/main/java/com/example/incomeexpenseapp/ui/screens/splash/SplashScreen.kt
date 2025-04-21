@@ -28,17 +28,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.example.incomeexpenseapp.R
+import com.example.incomeexpenseapp.nav.LocalNavController
 import com.example.incomeexpenseapp.nav.NavMainScreen
 import com.example.incomeexpenseapp.ui.theme.Black
 import com.example.incomeexpenseapp.ui.theme.Blue
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(
-    navHostController: NavHostController
-) {
+fun SplashScreen() {
+
+    val navHostController = LocalNavController.current
 
     val systemBottomPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
     val systemTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()

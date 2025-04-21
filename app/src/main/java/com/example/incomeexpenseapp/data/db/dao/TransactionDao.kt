@@ -20,6 +20,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transaction_table")
     fun getAllTransactions(): Flow<List<TransactionEntity>>
 
+    @Query("SELECT * FROM transaction_table")
+    fun getListTransactions(): List<TransactionEntity>
+
     @Query("SELECT * FROM transaction_table WHERE categoryId = :catId")
     suspend fun getTransactionsByCategory(catId: Int): List<TransactionEntity>
 

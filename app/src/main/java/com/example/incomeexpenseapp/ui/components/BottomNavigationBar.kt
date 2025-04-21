@@ -31,10 +31,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.example.incomeexpenseapp.nav.BottomNavScreens
+import com.example.incomeexpenseapp.nav.LocalNavController
 import com.example.incomeexpenseapp.nav.NavMainScreen
 import com.example.incomeexpenseapp.nav.routeClass
 import com.example.incomeexpenseapp.ui.theme.Blue
@@ -42,9 +41,10 @@ import com.example.incomeexpenseapp.ui.theme.Blue
 @Composable
 fun BottomNavigationBar(
     modifier: Modifier = Modifier,
-    navHostController: NavHostController,
     content: @Composable () -> Unit,
 ) {
+
+    val navHostController = LocalNavController.current
 
     val systemBottomPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
@@ -139,7 +139,7 @@ fun PreviewBottomBar() {
             .fillMaxSize()
             .background(Blue)
     ) {
-        BottomNavigationBar(navHostController = rememberNavController()) {
+        BottomNavigationBar() {
 
         }
     }

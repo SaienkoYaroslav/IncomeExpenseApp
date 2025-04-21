@@ -41,6 +41,16 @@ android {
     buildFeatures {
         compose = true
     }
+
+    kotlinOptions {
+        freeCompilerArgs += listOf(
+            "-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${rootProject.buildDir.absolutePath}/reports/${project.name}",
+            "-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${rootProject.buildDir.absolutePath}/reports/${project.name}"
+        )
+    }
+
 }
 
 dependencies {
@@ -62,10 +72,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // constrain layout
-    implementation (libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.constraintlayout.compose)
 
     // collapsed toolBar
-    implementation (libs.groovincollapsingtoolbar)
+    implementation(libs.groovincollapsingtoolbar)
 
     // blur bg
     implementation(libs.haze)
@@ -96,7 +106,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     // systemUI color
-    implementation (libs.accompanist.systemuicontroller)
+    implementation(libs.accompanist.systemuicontroller)
 
     // admob
     implementation(libs.play.services.ads)
